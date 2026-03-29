@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Manutenção</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Sistema de Manutenção</h1>
+    <nav>
+      <button onclick="mostrarPagina('nova-atividade')">Nova atividade</button>
+      <button onclick="mostrarPagina('atividades')">Atividades</button>
+      <button onclick="mostrarPagina('relatorios')">Relatórios</button>
+      <button onclick="mostrarPagina('tecnicos')">Técnicos</button>
+      <button onclick="mostrarPagina('equipamentos')">Equipamentos</button>
+      <button onclick="mostrarPagina('configuracoes')">Configurações</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- NOVA ATIVIDADE -->
+    <section id="pagina-nova-atividade" class="pagina ativa">
+      <h2 id="titulo-form-atividade">Nova Atividade</h2>
+
+      <form id="formAtividade" class="card grid-form">
+        <input type="hidden" id="atividadeId" />
+
+        <input id="turno" placeholder="Turno" />
+        <input id="contrato" placeholder="Contrato" />
+        <input id="tipo" placeholder="Tipo" />
+        <input id="data" type="date" />
+        <input id="matricula" placeholder="Matrícula" />
+        <input id="nome" placeholder="Nome" />
+        <input id="tag" placeholder="Tag" />
+        <input id="serie" placeholder="Série" />
+        <input id="equipamento" placeholder="Equipamento" />
+        <input id="hh" type="number" step="0.01" placeholder="HH" />
+        <input id="horimetro" type="number" step="0.01" placeholder="Horímetro" />
+        <input id="om" placeholder="OM" />
+        <input id="atividade_requisitada" placeholder="Atividade requisitada" />
+        <input id="job" placeholder="Job" />
+        <input id="comp" placeholder="Comp" />
+        <input id="os" placeholder="OS" />
+        <input id="ov" placeholder="OV" />
+        <input id="status" placeholder="Status" />
+        <input id="observacao" placeholder="Observação" />
+        <input id="valor" type="number" step="0.01" placeholder="Valor" />
+        <input id="classificacao" placeholder="Classificação" />
+
+        <select id="tecnico_id">
+          <option value="">Selecione o técnico</option>
+        </select>
+
+        <select id="equipamento_id">
+          <option value="">Selecione o equipamento</option>
+        </select>
+
+        <div class="acoes-form">
+          <button type="submit">Salvar atividade</button>
+          <button type="button" class="secondary" onclick="cancelarEdicaoAtividade()">Cancelar edição</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ATIVIDADES -->
+    <section id="pagina-atividades" class="pagina">
+      <h2>Atividades</h2>
+      <div id="listaAtividades" class="lista"></div>
+    </section>
+
+    <!-- RELATÓRIOS -->
+    <section id="pagina-relatorios" class="pagina">
+      <h2>Relatórios</h2>
+
+      <div class="card filtros">
+        <input id="filtroDataInicio" type="date" />
+        <input id="filtroDataFim" type="date" />
+        <select id="filtroTecnico">
+          <option value="">Todos os técnicos</option>
+        </select>
+        <button onclick="carregarRelatorios()">Filtrar</button>
+      </div>
+
+      <div id="listaRelatorios" class="lista"></div>
+    </section>
+
+    <!-- TÉCNICOS -->
+    <section id="pagina-tecnicos" class="pagina">
+      <h2>Técnicos</h2>
+
+      <form id="formTecnico" class="card inline-form">
+        <input type="hidden" id="tecnicoFormId" />
+        <input id="tecnicoMatricula" placeholder="Matrícula" />
+        <input id="tecnicoNome" placeholder="Nome do técnico" />
+        <button type="submit">Salvar técnico</button>
+      </form>
+
+      <div id="listaTecnicos" class="lista"></div>
+    </section>
+
+    <!-- EQUIPAMENTOS -->
+    <section id="pagina-equipamentos" class="pagina">
+      <h2>Equipamentos</h2>
+
+      <form id="formEquipamento" class="card grid-form">
+        <input type="hidden" id="equipamentoFormId" />
+        <input id="eqSerie" placeholder="Série" />
+        <input id="eqTag" placeholder="Tag" />
+        <input id="eqModelo" placeholder="Modelo" />
+        <input id="eqCodigo" placeholder="Código" />
+        <input id="eqDataEntrega" type="date" />
+        <input id="eqDataGarantia" type="date" />
+        <input id="eqObservacoes" placeholder="Observações" />
+        <button type="submit">Salvar equipamento</button>
+      </form>
+
+      <div id="listaEquipamentos" class="lista"></div>
+    </section>
+
+    <!-- CONFIG -->
+    <section id="pagina-configuracoes" class="pagina">
+      <h2>Configurações</h2>
+      <div class="card">
+        <p>Painel pronto para futuras configurações do sistema.</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

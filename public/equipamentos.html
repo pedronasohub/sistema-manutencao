@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Equipamentos</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Sistema de Manutenção</h1>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="nova-atividade.html">Nova atividade</a>
+      <a href="atividades.html">Atividades</a>
+      <a href="relatorios.html">Relatórios</a>
+      <a href="configuracoes.html">Configurações</a>
+      <a href="tecnicos.html">Técnicos</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h2>Cadastro de Equipamentos</h2>
+
+    <form id="formEquipamento" class="grid grid-2">
+      <input type="text" id="serie" placeholder="Série">
+      <input type="text" id="tag" placeholder="TAG">
+      <input type="text" id="modelo" placeholder="Modelo">
+      <input type="text" id="codigo" placeholder="Código">
+      <input type="date" id="data_entrega">
+      <input type="date" id="data_garantia">
+      <textarea id="observacoes" placeholder="Observações"></textarea>
+      <button type="submit">Salvar Equipamento</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Série</th>
+          <th>TAG</th>
+          <th>Modelo</th>
+          <th>Código</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tbodyEquipamentos"></tbody>
+    </table>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script src="js/equipamentos.js"></script>
+</body>
+</html>

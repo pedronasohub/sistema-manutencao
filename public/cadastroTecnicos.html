@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Cadastro de Técnicos</title>
+  <link rel="stylesheet" href="css/cadastroTecnicos.css">
+</head>
+<body>
+  <header>
+    <h1>Cadastro de Técnicos</h1>
+  </header>
+
+  <main class="container">
+    <form id="tecnicoForm" class="card">
+      <input type="hidden" id="tecnicoId">
+
+      <h2>Novo / Editar Técnico</h2>
+
+      <label for="matricula">Matrícula</label>
+      <input type="text" id="matricula" placeholder="Digite a matrícula">
+
+      <label for="nome">Nome</label>
+      <input type="text" id="nome" required placeholder="Digite o nome do técnico">
+
+      <label for="contrato_id">Contrato</label>
+      <select id="contrato_id">
+        <option value="">Selecione o contrato</option>
+      </select>
+
+      <label for="supervisor">Supervisor</label>
+      <input type="text" id="supervisor" placeholder="Nome do supervisor">
+
+      <label for="turno">Turno</label>
+      <select id="turno">
+        <option value="">Selecione</option>
+        <option value="A">A</option>
+        <option value="C">C</option>
+      </select>
+
+      <div class="acoes">
+        <button type="submit">Salvar</button>
+        <button type="button" id="btnCancelar" style="display: none;">Cancelar Edição</button>
+      </div>
+    </form>
+
+    <section class="card">
+      <h2>Lista de Técnicos</h2>
+
+      <table id="tabelaTecnicos">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Matrícula</th>
+            <th>Nome</th>
+            <th>Contrato ID</th>
+            <th>Supervisor</th>
+            <th>Turno</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="js/cadastroTecnicos.js"></script>
+</body>
+</html>

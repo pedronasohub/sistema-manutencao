@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nova Atividade</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Sistema de Manutenção</h1>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="atividades.html">Atividades</a>
+      <a href="relatorios.html">Relatórios</a>
+      <a href="configuracoes.html">Configurações</a>
+      <a href="tecnicos.html">Técnicos</a>
+      <a href="equipamentos.html">Equipamentos</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h2>Nova Atividade</h2>
+
+    <form id="formAtividade" class="grid grid-2">
+      <input type="text" id="titulo" placeholder="Título">
+      <input type="text" id="responsavel" placeholder="Responsável">
+      <input type="date" id="data_inicio">
+      <input type="date" id="data_termino">
+      <input type="text" id="status" placeholder="Status">
+      <input type="text" id="classificacao" placeholder="Classificação">
+      <input type="text" id="matricula" placeholder="Matrícula">
+      <input type="text" id="nome" placeholder="Nome">
+      <input type="text" id="tag" placeholder="TAG">
+      <input type="text" id="serie" placeholder="Série">
+      <input type="text" id="om" placeholder="OM">
+      <input type="text" id="os" placeholder="OS">
+      <input type="text" id="ov" placeholder="OV">
+      <textarea id="descricao" placeholder="Descrição"></textarea>
+      <button type="submit">Salvar Atividade</button>
+    </form>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script src="js/nova-atividade.js"></script>
+</body>
+</html>

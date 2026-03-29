@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Manutenção</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Sistema de Manutenção</h1>
+    <p>Controle simples de atividades</p>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Cadastro / Edição de Atividade</h2>
+
+      <form id="atividadeForm" class="form-grid">
+        <input type="hidden" id="id" />
+
+        <div>
+          <label>Turno</label>
+          <input type="text" id="turno" placeholder="Ex: T - C" />
+        </div>
+
+        <div>
+          <label>Contrato</label>
+          <input type="text" id="contrato" placeholder="Ex: Vale / Onça Puma" />
+        </div>
+
+        <div>
+          <label>Tipo</label>
+          <input type="text" id="tipo" placeholder="Ex: Preventiva" />
+        </div>
+
+        <div>
+          <label>Data</label>
+          <input type="date" id="data" />
+        </div>
+
+        <div>
+          <label>Matrícula</label>
+          <input type="number" id="matricula" />
+        </div>
+
+        <div>
+          <label>Nome</label>
+          <input type="text" id="nome" />
+        </div>
+
+        <div>
+          <label>TAG</label>
+          <input type="text" id="tag" />
+        </div>
+
+        <div>
+          <label>Série</label>
+          <input type="text" id="serie" />
+        </div>
+
+        <div>
+          <label>Equipamento</label>
+          <input type="text" id="equipamento" />
+        </div>
+
+        <div>
+          <label>HH</label>
+          <input type="number" step="0.01" id="hh" />
+        </div>
+
+        <div>
+          <label>Horímetro</label>
+          <input type="number" step="0.01" id="horimetro" />
+        </div>
+
+        <div>
+          <label>OM</label>
+          <input type="text" id="om" />
+        </div>
+
+        <div class="full">
+          <label>Atividade Requisitada</label>
+          <input type="text" id="atividade_requisitada" />
+        </div>
+
+        <div>
+          <label>Job</label>
+          <input type="text" id="job" />
+        </div>
+
+        <div>
+          <label>Comp</label>
+          <input type="text" id="comp" />
+        </div>
+
+        <div>
+          <label>OS</label>
+          <input type="text" id="os" />
+        </div>
+
+        <div>
+          <label>OV</label>
+          <input type="text" id="ov" />
+        </div>
+
+        <div>
+          <label>Status</label>
+          <input type="text" id="status" />
+        </div>
+
+        <div>
+          <label>Valor</label>
+          <input type="number" step="0.01" id="valor" />
+        </div>
+
+        <div>
+          <label>Classificação</label>
+          <input type="text" id="classificacao" />
+        </div>
+
+        <div class="full">
+          <label>Observação</label>
+          <textarea id="observacao" rows="3"></textarea>
+        </div>
+
+        <div class="actions full">
+          <button type="submit" class="btn primary">Salvar</button>
+          <button type="button" id="btnCancelar" class="btn secondary">Cancelar Edição</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="toolbar">
+        <h2>Lista de Atividades</h2>
+        <input type="text" id="busca" placeholder="Buscar por nome, OM, OV, matrícula..." />
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Data</th>
+              <th>Matrícula</th>
+              <th>Nome</th>
+              <th>OM</th>
+              <th>OS</th>
+              <th>OV</th>
+              <th>Status</th>
+              <th>Classificação</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaAtividades">
+            <tr>
+              <td colspan="10" class="center">Carregando...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

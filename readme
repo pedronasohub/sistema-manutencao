@@ -1,0 +1,54 @@
+sistema-manutencao/
+├── public/
+│   ├── index.html
+│   ├── atividades.html
+│   ├── nova-atividade.html
+│   ├── tecnicos.html
+│   ├── equipamentos.html
+│   ├── relatorios.html
+│   ├── configuracoes.html
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       ├── common.js
+│       ├── dashboard.js
+│       ├── atividades.js
+│       ├── nova-atividade.js
+│       ├── tecnicos.js
+│       ├── equipamentos.js
+│       ├── relatorios.js
+│       └── configuracoes.js
+├── src/
+│   ├── database/
+│   │   └── db.js
+│   ├── controllers/
+│   │   ├── atividades.controller.js
+│   │   ├── tecnicos.controller.js
+│   │   ├── equipamentos.controller.js
+│   │   └── relatorios.controller.js
+│   ├── services/
+│   │   ├── atividades.service.js
+│   │   ├── tecnicos.service.js
+│   │   ├── equipamentos.service.js
+│   │   └── relatorios.service.js
+│   └── routes/
+│       ├── atividades.routes.js
+│       ├── tecnicos.routes.js
+│       ├── equipamentos.routes.js
+│       └── relatorios.routes.js
+├── uploads/
+├── manutencao.db
+├── package.json
+└── server.js
+
+
+- Mapa do sistema:
+   - clientes → clientes
+   - contratos → contratos
+   - tecnicos → cadastro mestre de técnicos
+   - tecnico_contratos → vínculo técnico x contrato
+   - equipamentos → cadastro mestre de equipamentos
+   - atividades_manutencao → catálogo de atividades
+   - atividades → atividade operacional / programada / executada
+   - atividade_tecnicos → técnicos alocados na atividade
+   - programacao_mensal → planejamento mensal

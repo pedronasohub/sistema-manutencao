@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Programação Mensal - Sistema Manutenção</title>
+  <link rel="stylesheet" href="css/programacao.css" />
+</head>
+<body>
+  <div class="page-container">
+    <header class="page-header">
+      <div>
+        <h1>Programação Mensal</h1>
+        <p>Geração, consulta e atualização da escala mensal dos técnicos</p>
+      </div>
+    </header>
+
+    <section class="card filters-card">
+      <div class="filters-grid">
+        <div class="field">
+          <label for="mes">Mês</label>
+          <select id="mes">
+            <option value="1">Janeiro</option>
+            <option value="2">Fevereiro</option>
+            <option value="3">Março</option>
+            <option value="4">Abril</option>
+            <option value="5">Maio</option>
+            <option value="6">Junho</option>
+            <option value="7">Julho</option>
+            <option value="8">Agosto</option>
+            <option value="9">Setembro</option>
+            <option value="10">Outubro</option>
+            <option value="11">Novembro</option>
+            <option value="12">Dezembro</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="ano">Ano</label>
+          <input type="number" id="ano" min="2024" max="2100" />
+        </div>
+
+        <div class="field">
+          <label for="tipoEscala">Tipo de Escala</label>
+          <select id="tipoEscala">
+            <option value="alternancia">Alternância diária A/C</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="turnoInicial">Turno Inicial</label>
+          <select id="turnoInicial">
+            <option value="A">Turno A</option>
+            <option value="C">Turno C</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="dataBase">Data Base</label>
+          <input type="date" id="dataBase" />
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <button id="btnGerar" class="btn btn-primary">Gerar Programação</button>
+        <button id="btnBuscar" class="btn btn-secondary">Buscar Programação</button>
+        <button id="btnLimpar" class="btn btn-light">Limpar Tabela</button>
+      </div>
+
+      <div id="statusBox" class="status-box hidden"></div>
+    </section>
+
+    <section class="card summary-card">
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="summary-label">Total de Registros</span>
+          <strong id="sumTotal">0</strong>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Disponíveis</span>
+          <strong id="sumDisponivel">0</strong>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Afastamentos</span>
+          <strong id="sumAfastados">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="card table-card">
+      <div class="table-header">
+        <h2>Registros da Programação</h2>
+        <input
+          type="text"
+          id="filtroNome"
+          placeholder="Filtrar por nome ou matrícula..."
+        />
+      </div>
+
+      <div class="table-wrapper">
+        <table id="tabelaProgramacao">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Data</th>
+              <th>Turno</th>
+              <th>Matrícula</th>
+              <th>Técnico</th>
+              <th>Status</th>
+              <th>Observação</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyProgramacao">
+            <tr>
+              <td colspan="8" class="empty-state">
+                Nenhuma programação carregada.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <script src="js/programacao.js"></script>
+</body>
+</html>

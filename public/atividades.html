@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Atividades</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>Sistema de Manutenção</h1>
+    <nav>
+      <a href="index.html">Dashboard</a>
+      <a href="nova-atividade.html">Nova atividade</a>
+      <a href="relatorios.html">Relatórios</a>
+      <a href="configuracoes.html">Configurações</a>
+      <a href="tecnicos.html">Técnicos</a>
+      <a href="equipamentos.html">Equipamentos</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h2>Lista de Atividades</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Título</th>
+          <th>Responsável</th>
+          <th>Início</th>
+          <th>Término</th>
+          <th>Status</th>
+          <th>OV</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody id="tbodyAtividades"></tbody>
+    </table>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script src="js/atividades.js"></script>
+</body>
+</html>

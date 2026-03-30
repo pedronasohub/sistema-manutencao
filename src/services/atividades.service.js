@@ -1,17 +1,16 @@
+// ==========================================
+// ARQUIVO: services/atividades.service.js
+// V2 AJUSTADA PARA NÃO QUEBRAR SE FALTAR CLIENTE
+// ==========================================
+
 const db = require('../database/db');
 
 function listar(callback) {
   db.all(
     `
-    SELECT 
-      a.*,
-      t.nome AS tecnico_nome_rel,
-      e.tag AS equipamento_tag_rel,
-      e.serie AS equipamento_serie_rel
-    FROM atividades a
-    LEFT JOIN tecnicos t ON a.tecnico_id = t.id
-    LEFT JOIN equipamentos e ON a.equipamento_id = e.id
-    ORDER BY a.id DESC
+    SELECT *
+    FROM atividades
+    ORDER BY id DESC
     `,
     [],
     callback
@@ -19,109 +18,245 @@ function listar(callback) {
 }
 
 function buscarPorId(id, callback) {
-  db.get(`SELECT * FROM atividades WHERE id = ?`, [id], callback);
+  db.get(
+    `
+    SELECT *
+    FROM atividades
+    WHERE id = ?
+    `,
+    [id],
+    callback
+  );
 }
 
 function criar(dados, callback) {
   const {
-    turno,
+    cliente,
     contrato,
-    tipo,
-    data,
-    matricula,
-    nome,
     tag,
     serie,
     equipamento,
-    hh,
     horimetro,
-    om,
+    tipo,
     atividade_requisitada,
+    om,
+    observacao,
+    turno,
+    duracao,
     job,
     comp,
-    os,
-    ov,
-    status,
-    observacao,
-    valor,
-    classificacao,
-    tecnico_id,
-    equipamento_id
+    data_inicio,
+    data_termino,
+    tecnicos
   } = dados;
 
   db.run(
     `
     INSERT INTO atividades (
-      turno, contrato, tipo, data, matricula, nome, tag, serie, equipamento,
-      hh, horimetro, om, atividade_requisitada, job, comp, os, ov, status,
-      observacao, valor, classificacao, tecnico_id, equipamento_id
+      contrato,
+      tipo,
+      atividade_requisitada,
+      observacao,
+      turno,
+      cliente,
+      tag,
+      serie,
+      equipamento,
+      horimetro,
+      om,
+      duracao,
+      job,
+      comp,
+      data_inicio,
+      data_termino
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     [
-      turno, contrato, tipo, data, matricula, nome, tag, serie, equipamento,
-      hh, horimetro, om, atividade_requisitada, job, comp, os, ov, status,
-      observacao, valor, classificacao, tecnico_id || null, equipamento_id || null
+      contrato || null,
+      tipo || null,
+      atividade_requisitada || null,
+      observacao || null,
+      turno || null,
+      cliente || null,
+      tag || null,
+      serie || null,
+      equipamento || null,
+      horimetro || null,
+      om || null,
+      duracao || null,
+      job || null,
+      comp || null,
+      data_inicio || null,
+      data_termino || null
     ],
     function (err) {
       if (err) return callback(err);
-      callback(null, { id: this.lastID });
+
+      const atividadeId = this.lastID;
+
+      if (!Array.isArray(tecnicos) || tecnicos.length === 0) {
+        return callback(null, { id: atividadeId });
+      }
+
+      const stmt = db.prepare(`
+        INSERT INTO atividade_tecnicos (atividade_id, tecnico_id)
+        VALUES (?, ?)
+      `);
+
+      let index = 0;
+
+      function inserirProximo() {
+        if (index >= tecnicos.length) {
+          stmt.finalize((finalizeErr) => {
+            if (finalizeErr) return callback(finalizeErr);
+            callback(null, { id: atividadeId });
+          });
+          return;
+        }
+
+        const tecnicoId = tecnicos[index];
+
+        stmt.run([atividadeId, tecnicoId], (insertErr) => {
+          if (insertErr) return callback(insertErr);
+          index++;
+          inserirProximo();
+        });
+      }
+
+      inserirProximo();
     }
   );
 }
 
 function editar(id, dados, callback) {
   const {
-    turno,
+    cliente,
     contrato,
-    tipo,
-    data,
-    matricula,
-    nome,
     tag,
     serie,
     equipamento,
-    hh,
     horimetro,
-    om,
+    tipo,
     atividade_requisitada,
+    om,
+    observacao,
+    turno,
+    duracao,
     job,
     comp,
-    os,
-    ov,
-    status,
-    observacao,
-    valor,
-    classificacao,
-    tecnico_id,
-    equipamento_id
+    data_inicio,
+    data_termino,
+    tecnicos
   } = dados;
 
   db.run(
     `
-    UPDATE atividades SET
-      turno = ?, contrato = ?, tipo = ?, data = ?, matricula = ?, nome = ?, tag = ?, serie = ?, equipamento = ?,
-      hh = ?, horimetro = ?, om = ?, atividade_requisitada = ?, job = ?, comp = ?, os = ?, ov = ?, status = ?,
-      observacao = ?, valor = ?, classificacao = ?, tecnico_id = ?, equipamento_id = ?
+    UPDATE atividades
+    SET
+      contrato = ?,
+      tipo = ?,
+      atividade_requisitada = ?,
+      observacao = ?,
+      turno = ?,
+      cliente = ?,
+      tag = ?,
+      serie = ?,
+      equipamento = ?,
+      horimetro = ?,
+      om = ?,
+      duracao = ?,
+      job = ?,
+      comp = ?,
+      data_inicio = ?,
+      data_termino = ?
     WHERE id = ?
     `,
     [
-      turno, contrato, tipo, data, matricula, nome, tag, serie, equipamento,
-      hh, horimetro, om, atividade_requisitada, job, comp, os, ov, status,
-      observacao, valor, classificacao, tecnico_id || null, equipamento_id || null, id
+      contrato || null,
+      tipo || null,
+      atividade_requisitada || null,
+      observacao || null,
+      turno || null,
+      cliente || null,
+      tag || null,
+      serie || null,
+      equipamento || null,
+      horimetro || null,
+      om || null,
+      duracao || null,
+      job || null,
+      comp || null,
+      data_inicio || null,
+      data_termino || null,
+      id
     ],
     function (err) {
       if (err) return callback(err);
-      callback(null, this.changes);
+
+      if (this.changes === 0) {
+        return callback(null, 0);
+      }
+
+      db.run(
+        `DELETE FROM atividade_tecnicos WHERE atividade_id = ?`,
+        [id],
+        (deleteErr) => {
+          if (deleteErr) return callback(deleteErr);
+
+          if (!Array.isArray(tecnicos) || tecnicos.length === 0) {
+            return callback(null, 1);
+          }
+
+          const stmt = db.prepare(`
+            INSERT INTO atividade_tecnicos (atividade_id, tecnico_id)
+            VALUES (?, ?)
+          `);
+
+          let index = 0;
+
+          function inserirProximo() {
+            if (index >= tecnicos.length) {
+              stmt.finalize((finalizeErr) => {
+                if (finalizeErr) return callback(finalizeErr);
+                callback(null, 1);
+              });
+              return;
+            }
+
+            const tecnicoId = tecnicos[index];
+
+            stmt.run([id, tecnicoId], (insertErr) => {
+              if (insertErr) return callback(insertErr);
+              index++;
+              inserirProximo();
+            });
+          }
+
+          inserirProximo();
+        }
+      );
     }
   );
 }
 
 function excluir(id, callback) {
-  db.run(`DELETE FROM atividades WHERE id = ?`, [id], function (err) {
-    if (err) return callback(err);
-    callback(null, this.changes);
-  });
+  db.run(
+    `DELETE FROM atividade_tecnicos WHERE atividade_id = ?`,
+    [id],
+    (err) => {
+      if (err) return callback(err);
+
+      db.run(
+        `DELETE FROM atividades WHERE id = ?`,
+        [id],
+        function (err2) {
+          if (err2) return callback(err2);
+          callback(null, this.changes);
+        }
+      );
+    }
+  );
 }
 
 module.exports = {

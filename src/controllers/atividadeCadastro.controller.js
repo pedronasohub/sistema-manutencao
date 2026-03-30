@@ -18,26 +18,75 @@ function buscarPorId(req, res) {
 }
 
 function criar(req, res) {
-  const { codigo, nome, tipo, descricao } = req.body;
+  const {
+    turno,
+    contrato,
+    tipo,
+    atividade_requisitada,
+    classificacao,
+    status,
+    observacao
+  } = req.body;
 
-  atividadeCadastroService.criar({ codigo, nome, tipo, descricao }, (err, result) => {
-    if (err) return res.status(500).json({ erro: err.message });
-    res.status(201).json({
-      mensagem: 'Atividade criada com sucesso.',
-      id: result.id
-    });
-  });
+  if (!atividade_requisitada || !String(atividade_requisitada).trim()) {
+    return res.status(400).json({ erro: 'O campo atividade_requisitada é obrigatório.' });
+  }
+
+  atividadeCadastroService.criar(
+    {
+      turno,
+      contrato,
+      tipo,
+      atividade_requisitada: String(atividade_requisitada).trim(),
+      classificacao,
+      status,
+      observacao
+    },
+    (err, result) => {
+      if (err) return res.status(500).json({ erro: err.message });
+
+      res.status(201).json({
+        mensagem: 'Atividade cadastrada com sucesso.',
+        id: result.id
+      });
+    }
+  );
 }
 
 function editar(req, res) {
   const { id } = req.params;
-  const { codigo, nome, tipo, descricao } = req.body;
+  const {
+    turno,
+    contrato,
+    tipo,
+    atividade_requisitada,
+    classificacao,
+    status,
+    observacao
+  } = req.body;
 
-  atividadeCadastroService.editar(id, { codigo, nome, tipo, descricao }, (err, changes) => {
-    if (err) return res.status(500).json({ erro: err.message });
-    if (changes === 0) return res.status(404).json({ erro: 'Atividade não encontrada.' });
-    res.json({ mensagem: 'Atividade atualizada com sucesso.' });
-  });
+  if (!atividade_requisitada || !String(atividade_requisitada).trim()) {
+    return res.status(400).json({ erro: 'O campo atividade_requisitada é obrigatório.' });
+  }
+
+  atividadeCadastroService.editar(
+    id,
+    {
+      turno,
+      contrato,
+      tipo,
+      atividade_requisitada: String(atividade_requisitada).trim(),
+      classificacao,
+      status,
+      observacao
+    },
+    (err, changes) => {
+      if (err) return res.status(500).json({ erro: err.message });
+      if (changes === 0) return res.status(404).json({ erro: 'Atividade não encontrada.' });
+
+      res.json({ mensagem: 'Atividade atualizada com sucesso.' });
+    }
+  );
 }
 
 function excluir(req, res) {
@@ -46,6 +95,7 @@ function excluir(req, res) {
   atividadeCadastroService.excluir(id, (err, changes) => {
     if (err) return res.status(500).json({ erro: err.message });
     if (changes === 0) return res.status(404).json({ erro: 'Atividade não encontrada.' });
+
     res.json({ mensagem: 'Atividade excluída com sucesso.' });
   });
 }

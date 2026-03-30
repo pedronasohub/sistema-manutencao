@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minhas Despesas - Controle Financeiro</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --gray: #64748b;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+      color: #1e2937;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 25px 30px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-bottom: 5px;
+    }
+
+    .subtitle {
+      opacity: 0.9;
+      font-size: 16px;
+    }
+
+    .main-content {
+      padding: 30px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 15px;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #475569;
+      padding: 14px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    td {
+      padding: 14px 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    tr:hover {
+      background: #f8fafc;
+    }
+
+    .valor, .total {
+      font-weight: 600;
+      color: #1e40af;
+    }
+
+    .tipo-parcelado { color: #7c3aed; }
+    .tipo-mensal { color: #ea580c; }
+    .tipo-fixo { color: #0891b2; }
+
+    .total-geral {
+      font-size: 24px;
+      font-weight: bold;
+      text-align: right;
+      margin-top: 30px;
+      padding: 20px;
+      background: #f0f9ff;
+      border-radius: 12px;
+      border: 2px solid var(--primary);
+    }
+
+    button {
+      padding: 10px 20px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .add-btn {
+      background: var(--success);
+      font-size: 16px;
+      padding: 12px 24px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 500px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    .summary {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      flex: 1;
+      min-width: 220px;
+    }
+
+    @media (max-width: 768px) {
+      table {
+        font-size: 14px;
+      }
+      th, td {
+        padding: 10px 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>💰 Controle de Despesas</h1>
+      <p class="subtitle">Gerencie suas contas e parcelas com facilidade</p>
+    </header>
+
+    <div class="main-content">
+      <div class="summary">
+        <div class="card">
+          <strong>Total Geral</strong>
+          <h2 id="totalGeral">R$ 0,00</h2>
+        </div>
+        <div class="card">
+          <strong>Despesas de Abril</strong>
+          <h2 id="totalAbril">R$ 0,00</h2>
+        </div>
+        <div class="card">
+          <strong>Despesas de Maio</strong>
+          <h2 id="totalMaio">R$ 0,00</h2>
+        </div>
+      </div>
+
+      <button class="add-btn" onclick="abrirModal()">+ Adicionar Nova Despesa</button>
+
+      <table id="tabelaDespesas">
+        <thead>
+          <tr>
+            <th>Despesa</th>
+            <th>Tipo</th>
+            <th>Valor Parcela</th>
+            <th>Mês</th>
+            <th>Vencimento</th>
+            <th>Parcelas</th>
+            <th>Total</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="corpoTabela">
+          <!-- Dados serão inseridos pelo JavaScript -->
+        </tbody>
+      </table>
+
+      <div class="total-geral">
+        <strong>Total de Todas as Despesas: </strong>
+        <span id="totalFinal">R$ 0,00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para adicionar despesa -->
+  <div class="modal" id="modal">
+    <div class="modal-content">
+      <h2>Adicionar Nova Despesa</h2>
+      <form id="formDespesa">
+        <input type="text" id="nome" placeholder="Nome da despesa (ex: Empréstimo 1)" required>
+        
+        <select id="tipo" required>
+          <option value="">Selecione o tipo</option>
+          <option value="Parcelado">Parcelado</option>
+          <option value="Mensal">Mensal</option>
+          <option value="Fixo Mensal">Fixo Mensal</option>
+        </select>
+
+        <input type="number" id="valor" step="0.01" placeholder="Valor da parcela (R$)" required>
+        
+        <select id="mes" required>
+          <option value="">Mês de início</option>
+          <option value="Abril">Abril</option>
+          <option value="Maio">Maio</option>
+          <option value="Junho">Junho</option>
+          <option value="Julho">Julho</option>
+        </select>
+
+        <input type="date" id="vencimento" required>
+
+        <input type="number" id="parcelas" value="12" min="1" placeholder="Número de parcelas" required>
+
+        <div style="margin-top: 20px; text-align: right;">
+          <button type="button" onclick="fecharModal()">Cancelar</button>
+          <button type="submit">Salvar Despesa</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let despesas = [
+      {
+        nome: "Empréstimo 1",
+        tipo: "Parcelado",
+        valor: 169.10,
+        mes: "Abril",
+        vencimento: "2026-04-26",
+        parcelas: 1
+      },
+      {
+        nome: "Empréstimo 2",
+        tipo: "Parcelado",
+        valor: 110.36,
+        mes: "Abril",
+        vencimento: "2026-04-26",
+        parcelas: 12
+      },
+      {
+        nome: "Empréstimo 3",
+        tipo: "Parcelado",
+        valor: 55.94,
+        mes: "Abril",
+        vencimento: "2026-04-26",
+        parcelas: 2
+      },
+      {
+        nome: "Empréstimo 4",
+        tipo: "Parcelado",
+        valor: 96.42,
+        mes: "Maio",
+        vencimento: "2026-05-26",
+        parcelas: 12
+      },
+      {
+        nome: "Empréstimo 5",
+        tipo: "Parcelado",
+        valor: 166.10,
+        mes: "Maio",
+        vencimento: "2026-05-26",
+        parcelas: 2
+      },
+      {
+        nome: "Empréstimo 6",
+        tipo: "Parcelado",
+        valor: 105.45,
+        mes: "Maio",
+        vencimento: "2026-05-26",
+        parcelas: 12
+      },
+      {
+        nome: "Custos Aurora",
+        tipo: "Fixo Mensal",
+        valor: 600.00,
+        mes: "Abril",
+        vencimento: "2026-04-30",
+        parcelas: 12
+      },
+      {
+        nome: "Faculdade (ADS)",
+        tipo: "Parcelado",
+        valor: 84.00,
+        mes: "Abril",
+        vencimento: "2026-04-30",
+        parcelas: 12
+      },
+      {
+        nome: "Compras",
+        tipo: "Mensal",
+        valor: 350.00,
+        mes: "Abril",
+        vencimento: "2026-04-30",
+        parcelas: 12
+      },
+      {
+        nome: "Odontologia",
+        tipo: "Mensal",
+        valor: 31.50,
+        mes: "Abril",
+        vencimento: "2026-04-30",
+        parcelas: 12
+      }
+    ];
+
+    function formatarMoeda(valor) {
+      return new Intl.NumberFormat('pt-BR', { 
+        style: 'currency', 
+        currency: 'BRL' 
+      }).format(valor);
+    }
+
+    function calcularTotal(despesa) {
+      return despesa.valor * despesa.parcelas;
+    }
+
+    function renderizarTabela() {
+      const tbody = document.getElementById('corpoTabela');
+      tbody.innerHTML = '';
+
+      let totalGeral = 0;
+      let totalAbril = 0;
+      let totalMaio = 0;
+
+      despesas.forEach((desp, index) => {
+        const total = calcularTotal(desp);
+        totalGeral += total;
+
+        if (desp.mes === "Abril") totalAbril += total;
+        if (desp.mes === "Maio") totalMaio += total;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${desp.nome}</strong></td>
+          <td><span class="${desp.tipo.toLowerCase().includes('mensal') ? 'tipo-mensal' : 'tipo-parcelado'}">${desp.tipo}</span></td>
+          <td class="valor">${formatarMoeda(desp.valor)}</td>
+          <td>${desp.mes}</td>
+          <td>${desp.vencimento.split('-').reverse().join('/')}</td>
+          <td>${desp.parcelas}</td>
+          <td class="total">${formatarMoeda(total)}</td>
+          <td>
+            <button onclick="removerDespesa(${index})" style="background:#ef4444; padding:6px 10px; font-size:12px;">Remover</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('totalGeral').textContent = formatarMoeda(totalGeral);
+      document.getElementById('totalAbril').textContent = formatarMoeda(totalAbril);
+      document.getElementById('totalMaio').textContent = formatarMoeda(totalMaio);
+      document.getElementById('totalFinal').textContent = formatarMoeda(totalGeral);
+    }
+
+    function adicionarDespesa(e) {
+      e.preventDefault();
+
+      const novaDespesa = {
+        nome: document.getElementById('nome').value,
+        tipo: document.getElementById('tipo').value,
+        valor: parseFloat(document.getElementById('valor').value),
+        mes: document.getElementById('mes').value,
+        vencimento: document.getElementById('vencimento').value,
+        parcelas: parseInt(document.getElementById('parcelas').value)
+      };
+
+      despesas.push(novaDespesa);
+      renderizarTabela();
+      fecharModal();
+      document.getElementById('formDespesa').reset();
+    }
+
+    function removerDespesa(index) {
+      if (confirm('Tem certeza que deseja remover esta despesa?')) {
+        despesas.splice(index, 1);
+        renderizarTabela();
+      }
+    }
+
+    function abrirModal() {
+      document.getElementById('modal').style.display = 'flex';
+    }
+
+    function fecharModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+
+    // Inicialização
+    document.getElementById('formDespesa').addEventListener('submit', adicionarDespesa);
+    renderizarTabela();
+  </script>
+</body>
+</html>

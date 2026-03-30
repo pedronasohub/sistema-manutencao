@@ -1,3 +1,7 @@
+// ===============================
+// ARQUIVO: controllers/atividades.controller.js
+// ===============================
+
 const atividadesService = require('../services/atividades.service');
 
 function listar(req, res) {
@@ -18,18 +22,34 @@ function buscarPorId(req, res) {
 }
 
 function criar(req, res) {
-  atividadesService.criar(req.body, (err, result) => {
+  const dados = req.body;
+
+  if (!dados.atividade_requisitada || !String(dados.atividade_requisitada).trim()) {
+    return res.status(400).json({ erro: 'O campo atividade_requisitada é obrigatório.' });
+  }
+
+  atividadesService.criar(dados, (err, result) => {
     if (err) return res.status(500).json({ erro: err.message });
-    res.status(201).json({ mensagem: 'Atividade criada com sucesso.', id: result.id });
+
+    res.status(201).json({
+      mensagem: 'Atividade cadastrada com sucesso.',
+      id: result.id
+    });
   });
 }
 
 function editar(req, res) {
   const { id } = req.params;
+  const dados = req.body;
 
-  atividadesService.editar(id, req.body, (err, changes) => {
+  if (!dados.atividade_requisitada || !String(dados.atividade_requisitada).trim()) {
+    return res.status(400).json({ erro: 'O campo atividade_requisitada é obrigatório.' });
+  }
+
+  atividadesService.editar(id, dados, (err, changes) => {
     if (err) return res.status(500).json({ erro: err.message });
     if (changes === 0) return res.status(404).json({ erro: 'Atividade não encontrada.' });
+
     res.json({ mensagem: 'Atividade atualizada com sucesso.' });
   });
 }
@@ -40,6 +60,7 @@ function excluir(req, res) {
   atividadesService.excluir(id, (err, changes) => {
     if (err) return res.status(500).json({ erro: err.message });
     if (changes === 0) return res.status(404).json({ erro: 'Atividade não encontrada.' });
+
     res.json({ mensagem: 'Atividade excluída com sucesso.' });
   });
 }

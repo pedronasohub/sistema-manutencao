@@ -1,239 +1,446 @@
-const API_BASE = '/api/atividades';
+// ===============================
+// ARQUIVO: public/js/atividadeCadastro.js
+// V2 CORRIGIDA - BUSCA DE EQUIPAMENTO POR TAG
+// ===============================
 
-let tecnicosDisponiveis = [];
-let tecnicosSelecionados = [];
+// ======================================================
+// CONFIG
+// ======================================================
 
-document.addEventListener('DOMContentLoaded', async () => {
-  bindEvents();
-  await carregarTecnicos();
-  renderTabelaTecnicos();
-});
+const API_ATIVIDADES = '/api/atividades';
+const API_CLIENTES = '/api/clientes';
+const API_CONTRATOS = '/api/contratos';
+const API_EQUIPAMENTOS = '/api/equipamentos';
+const API_TECNICOS = '/api/tecnicos';
 
-function bindEvents() {
-  document.getElementById('btnAdicionarTecnico').addEventListener('click', onAdicionarTecnico);
-  document.getElementById('btnSalvarAtividade').addEventListener('click', onSalvarAtividade);
-  document.getElementById('btnLimpar').addEventListener('click', limparFormulario);
+// ======================================================
+// ELEMENTOS
+// ======================================================
+
+const form = document.getElementById('atividadeForm');
+
+const clienteEl = document.getElementById('cliente');
+const contratoEl = document.getElementById('contrato');
+
+const tagEl = document.getElementById('tag');
+const serieEl = document.getElementById('serie');
+const equipamentoEl = document.getElementById('equipamento');
+const horimetroEl = document.getElementById('horimetro');
+
+const tipoEl = document.getElementById('tipo');
+const atividadeRequisitadaEl = document.getElementById('atividade_requisitada');
+const omEl = document.getElementById('om');
+const observacaoEl = document.getElementById('observacao');
+
+const turnoEl = document.getElementById('turno');
+const duracaoEl = document.getElementById('duracao');
+const jobEl = document.getElementById('job');
+const compEl = document.getElementById('comp');
+const dataInicioEl = document.getElementById('data_inicio');
+const dataTerminoEl = document.getElementById('data_termino');
+
+const searchTecnicoEl = document.getElementById('searchTecnico');
+const selectAllTecnicosEl = document.getElementById('selectAllTecnicos');
+const tecnicosTbody = document.querySelector('#tecnicosTable tbody');
+
+const atividadesTbody = document.querySelector('#atividadesTable tbody');
+
+// ======================================================
+// ESTADO
+// ======================================================
+
+let clientes = [];
+let contratos = [];
+let tecnicos = [];
+let tecnicosFiltrados = [];
+
+// ======================================================
+// HELPERS
+// ======================================================
+
+async function getJSON(url) {
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `Erro ao buscar: ${url}`);
+  }
+
+  return response.json();
 }
 
-async function request(url, options = {}) {
+async function sendJSON(url, method, body) {
   const response = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options
+    method,
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
   });
 
   const text = await response.text();
-  let data = null;
+  let data = {};
 
   try {
-    data = text ? JSON.parse(text) : null;
+    data = text ? JSON.parse(text) : {};
   } catch {
-    data = { message: text };
+    data = { raw: text };
   }
 
   if (!response.ok) {
-    throw new Error(data?.erro || data?.message || 'Erro na requisição.');
+    throw new Error(data.erro || data.message || text || 'Erro na requisição.');
   }
 
   return data;
 }
 
+function option(text, value = '') {
+  const op = document.createElement('option');
+  op.value = value;
+  op.textContent = text;
+  return op;
+}
+
+function limparSelect(selectEl, textoPadrao) {
+  selectEl.innerHTML = '';
+  selectEl.appendChild(option(textoPadrao, ''));
+}
+
+function formatarTextoSeguro(valor) {
+  return valor == null ? '' : String(valor);
+}
+
+function normalizarTexto(valor) {
+  return String(valor || '').trim().toLowerCase();
+}
+
+function normalizarTag(valor) {
+  return String(valor || '').trim().toUpperCase();
+}
+
+function obterCampo(obj, nomes) {
+  for (const nome of nomes) {
+    if (obj && obj[nome] !== undefined && obj[nome] !== null) {
+      return obj[nome];
+    }
+  }
+  return null;
+}
+
+function limparCamposEquipamento() {
+  serieEl.value = '';
+  equipamentoEl.value = '';
+  horimetroEl.value = '';
+}
+
+// ======================================================
+// CLIENTES
+// ======================================================
+
+async function carregarClientes() {
+  try {
+    limparSelect(clienteEl, 'Selecione o cliente');
+
+    clientes = await getJSON(API_CLIENTES);
+
+    clientes.forEach((cliente) => {
+      const id = obterCampo(cliente, ['id', 'cliente_id']);
+      const nome = obterCampo(cliente, ['nome', 'cliente', 'descricao']);
+
+      if (id != null || nome) {
+        clienteEl.appendChild(option(nome || `Cliente ${id}`, id ?? nome));
+      }
+    });
+  } catch (error) {
+    console.error('Erro ao carregar clientes:', error);
+  }
+}
+
+// ======================================================
+// CONTRATOS
+// ======================================================
+
+async function carregarContratosPorCliente() {
+  try {
+    limparSelect(contratoEl, 'Selecione o contrato');
+
+    const clienteId = clienteEl.value;
+    if (!clienteId) return;
+
+    contratos = await getJSON(`${API_CONTRATOS}?cliente_id=${encodeURIComponent(clienteId)}`);
+
+    contratos.forEach((contrato) => {
+      const id = obterCampo(contrato, ['id', 'contrato_id']);
+      const codigo = obterCampo(contrato, ['codigo', 'numero', 'contrato']);
+      const descricao = obterCampo(contrato, ['descricao', 'nome', 'titulo']);
+
+      const texto = descricao
+        ? `${codigo || id || ''} - ${descricao}`.trim()
+        : String(codigo || id || 'Contrato');
+
+      const valor = codigo || id || texto;
+
+      contratoEl.appendChild(option(texto, valor));
+    });
+
+    await aplicarFiltroTecnicos();
+  } catch (error) {
+    console.error('Erro ao carregar contratos:', error);
+  }
+}
+
+// ======================================================
+// EQUIPAMENTO POR TAG
+// ======================================================
+
+async function buscarEquipamentoPorTag() {
+  try {
+    const tagDigitada = normalizarTag(tagEl.value);
+
+    limparCamposEquipamento();
+
+    if (!tagDigitada) {
+      await aplicarFiltroTecnicos();
+      return;
+    }
+
+    const data = await getJSON(`${API_EQUIPAMENTOS}?tag=${encodeURIComponent(tagDigitada)}`);
+
+    let equipamentoEncontrado = null;
+
+    if (Array.isArray(data)) {
+      // CORREÇÃO PRINCIPAL:
+      // não pega mais data[0] fixo
+      equipamentoEncontrado = data.find((item) => {
+        const tagItem = normalizarTag(obterCampo(item, ['tag', 'TAG']));
+        return tagItem === tagDigitada;
+      });
+
+      // fallback: se não achar exato, tenta contains
+      if (!equipamentoEncontrado) {
+        equipamentoEncontrado = data.find((item) => {
+          const tagItem = normalizarTag(obterCampo(item, ['tag', 'TAG']));
+          return tagItem.includes(tagDigitada);
+        }) || null;
+      }
+    } else if (data && typeof data === 'object') {
+      equipamentoEncontrado = data;
+    }
+
+    if (equipamentoEncontrado) {
+      serieEl.value = formatarTextoSeguro(
+        obterCampo(equipamentoEncontrado, ['serie', 'serial'])
+      );
+
+      equipamentoEl.value = formatarTextoSeguro(
+        obterCampo(equipamentoEncontrado, ['equipamento', 'descricao', 'nome', 'modelo'])
+      );
+
+      horimetroEl.value = formatarTextoSeguro(
+        obterCampo(equipamentoEncontrado, ['horimetro', 'horimetro_atual', 'hm'])
+      );
+    }
+
+    await aplicarFiltroTecnicos();
+  } catch (error) {
+    console.error('Erro ao buscar equipamento por TAG:', error);
+    limparCamposEquipamento();
+  }
+}
+
+// ======================================================
+// TÉCNICOS
+// ======================================================
+
 async function carregarTecnicos() {
   try {
-    const data = await request('/api/tecnicos');
-    tecnicosDisponiveis = Array.isArray(data) ? data : (data.items || []);
-
-    const select = document.getElementById('selectTecnico');
-    select.innerHTML = '<option value="">Selecione um técnico</option>';
-
-    tecnicosDisponiveis.forEach(tecnico => {
-      const option = document.createElement('option');
-      option.value = tecnico.id;
-      option.textContent = `${tecnico.nome} (${tecnico.matricula || 'Sem matrícula'})`;
-      select.appendChild(option);
-    });
+    tecnicos = await getJSON(API_TECNICOS);
+    await aplicarFiltroTecnicos();
   } catch (error) {
-    showMessage(error.message, 'error');
+    console.error('Erro ao carregar técnicos:', error);
   }
 }
 
-function onAdicionarTecnico() {
-  const select = document.getElementById('selectTecnico');
-  const tecnicoId = Number(select.value);
+async function aplicarFiltroTecnicos() {
+  const contratoSelecionado = normalizarTexto(contratoEl.value);
+  const turnoSelecionado = normalizarTexto(turnoEl.value);
 
-  if (!tecnicoId) {
-    showMessage('Selecione um técnico.', 'error');
-    return;
-  }
+  tecnicosFiltrados = tecnicos.filter((tecnico) => {
+    const turnoTecnico = normalizarTexto(obterCampo(tecnico, ['turno']));
+    const contratoTecnico = normalizarTexto(
+      obterCampo(tecnico, ['contrato', 'contrato_codigo', 'contrato_id', 'codigo_contrato'])
+    );
 
-  const jaExiste = tecnicosSelecionados.some(t => t.tecnico_id === tecnicoId);
-  if (jaExiste) {
-    showMessage('Esse técnico já foi adicionado à atividade.', 'error');
-    return;
-  }
+    const passaTurno = !turnoSelecionado || turnoTecnico === turnoSelecionado;
+    const passaContrato = !contratoSelecionado || contratoTecnico === contratoSelecionado;
 
-  const tecnico = tecnicosDisponiveis.find(t => t.id === tecnicoId);
-  if (!tecnico) {
-    showMessage('Técnico não encontrado.', 'error');
-    return;
-  }
-
-  tecnicosSelecionados.push({
-    tecnico_id: tecnico.id,
-    nome: tecnico.nome,
-    hh: 0,
-    lider: 0,
-    status: 'PENDENTE',
-    observacao: ''
+    return passaTurno && passaContrato;
   });
 
-  select.value = '';
-  renderTabelaTecnicos();
+  renderTecnicos();
 }
 
-function renderTabelaTecnicos() {
-  const tbody = document.getElementById('tbodyTecnicos');
+function renderTecnicos() {
+  tecnicosTbody.innerHTML = '';
 
-  if (!tecnicosSelecionados.length) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" style="text-align:center;">Nenhum técnico adicionado.</td>
-      </tr>
+  const busca = normalizarTexto(searchTecnicoEl.value);
+
+  const lista = tecnicosFiltrados.filter((tecnico) => {
+    const nome = normalizarTexto(obterCampo(tecnico, ['nome']));
+    const matricula = normalizarTexto(obterCampo(tecnico, ['matricula', 'codigo']));
+    return nome.includes(busca) || matricula.includes(busca);
+  });
+
+  lista.forEach((tecnico) => {
+    const tr = document.createElement('tr');
+
+    const id = obterCampo(tecnico, ['id', 'tecnico_id']);
+    const matricula = obterCampo(tecnico, ['matricula', 'codigo']) || '';
+    const nome = obterCampo(tecnico, ['nome']) || '';
+    const supervisor = obterCampo(tecnico, ['supervisor']) || '';
+    const turno = obterCampo(tecnico, ['turno']) || '';
+
+    tr.innerHTML = `
+      <td><input type="checkbox" class="tecnico-checkbox" value="${id}"></td>
+      <td>${matricula}</td>
+      <td>${nome}</td>
+      <td>${supervisor}</td>
+      <td>${turno}</td>
     `;
-    return;
-  }
 
-  tbody.innerHTML = tecnicosSelecionados.map((tec, index) => `
-    <tr>
-      <td>${tec.nome}</td>
-      <td>
-        <input type="number" min="0" step="0.1" value="${tec.hh}" 
-               onchange="atualizarHH(${index}, this.value)" />
-      </td>
-      <td>
-        <input type="radio" name="liderTecnico" ${tec.lider ? 'checked' : ''} 
-               onchange="definirLider(${index})" />
-      </td>
-      <td>
-        <select onchange="atualizarStatusTecnico(${index}, this.value)">
-          <option value="PENDENTE" ${tec.status === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
-          <option value="EM EXECUCAO" ${tec.status === 'EM EXECUCAO' ? 'selected' : ''}>EM EXECUÇÃO</option>
-          <option value="CONCLUIDO" ${tec.status === 'CONCLUIDO' ? 'selected' : ''}>CONCLUÍDO</option>
-        </select>
-      </td>
-      <td>
-        <input type="text" value="${escapeHtml(tec.observacao)}" 
-               onchange="atualizarObservacaoTecnico(${index}, this.value)" />
-      </td>
-      <td>
-        <button class="btn-remove" onclick="removerTecnico(${index})">Remover</button>
-      </td>
-    </tr>
-  `).join('');
+    tecnicosTbody.appendChild(tr);
+  });
 }
 
-function atualizarHH(index, valor) {
-  tecnicosSelecionados[index].hh = Number(valor || 0);
+function obterTecnicosSelecionados() {
+  return Array.from(document.querySelectorAll('.tecnico-checkbox:checked'))
+    .map((el) => Number(el.value))
+    .filter((v) => !Number.isNaN(v));
 }
 
-function definirLider(index) {
-  tecnicosSelecionados = tecnicosSelecionados.map((t, i) => ({
-    ...t,
-    lider: i === index ? 1 : 0
-  }));
-  renderTabelaTecnicos();
-}
+// ======================================================
+// ATIVIDADES
+// ======================================================
 
-function atualizarStatusTecnico(index, valor) {
-  tecnicosSelecionados[index].status = valor;
-}
-
-function atualizarObservacaoTecnico(index, valor) {
-  tecnicosSelecionados[index].observacao = valor;
-}
-
-function removerTecnico(index) {
-  tecnicosSelecionados.splice(index, 1);
-  renderTabelaTecnicos();
-}
-
-async function onSalvarAtividade() {
-  const payload = {
-    tag: document.getElementById('tag').value.trim(),
-    om: document.getElementById('om').value.trim(),
-    atividade: document.getElementById('atividade').value.trim(),
-    turno: document.getElementById('turno').value,
-    status: document.getElementById('status').value,
-    observacao: document.getElementById('observacao').value.trim(),
-    tecnicos: tecnicosSelecionados.map(t => ({
-      tecnico_id: t.tecnico_id,
-      hh: Number(t.hh || 0),
-      lider: t.lider ? 1 : 0,
-      status: t.status || 'PENDENTE',
-      observacao: t.observacao || ''
-    }))
-  };
-
-  if (!payload.tag) {
-    showMessage('Informe a TAG do equipamento.', 'error');
-    return;
-  }
-
-  if (!payload.atividade) {
-    showMessage('Informe a atividade.', 'error');
-    return;
-  }
-
-  if (!payload.turno) {
-    showMessage('Selecione o turno.', 'error');
-    return;
-  }
-
-  if (!payload.tecnicos.length) {
-    showMessage('Adicione pelo menos um técnico.', 'error');
-    return;
-  }
-
+async function carregarAtividades() {
   try {
-    const data = await request(API_BASE, {
-      method: 'POST',
-      body: JSON.stringify(payload)
+    const atividades = await getJSON(API_ATIVIDADES);
+
+    atividadesTbody.innerHTML = '';
+
+    atividades.forEach((atividade) => {
+      const tr = document.createElement('tr');
+
+      tr.innerHTML = `
+        <td>${formatarTextoSeguro(atividade.id)}</td>
+        <td>${formatarTextoSeguro(atividade.cliente)}</td>
+        <td>${formatarTextoSeguro(atividade.contrato)}</td>
+        <td>${formatarTextoSeguro(atividade.tag)}</td>
+        <td>${formatarTextoSeguro(atividade.equipamento)}</td>
+        <td>${formatarTextoSeguro(atividade.tipo)}</td>
+        <td>${formatarTextoSeguro(atividade.turno)}</td>
+        <td>
+          <button type="button" data-id="${atividade.id}" class="btn-excluir">Excluir</button>
+        </td>
+      `;
+
+      atividadesTbody.appendChild(tr);
     });
 
-    showMessage(data?.message || 'Atividade salva com sucesso!', 'success');
-    limparFormulario();
+    bindBotoesExcluir();
   } catch (error) {
-    showMessage(error.message, 'error');
+    console.error('Erro ao carregar atividades:', error);
   }
 }
 
-function limparFormulario() {
-  document.getElementById('tag').value = '';
-  document.getElementById('om').value = '';
-  document.getElementById('atividade').value = '';
-  document.getElementById('turno').value = '';
-  document.getElementById('status').value = 'PENDENTE';
-  document.getElementById('observacao').value = '';
+function bindBotoesExcluir() {
+  document.querySelectorAll('.btn-excluir').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      if (!confirm(`Deseja excluir a atividade ${id}?`)) return;
 
-  tecnicosSelecionados = [];
-  renderTabelaTecnicos();
+      try {
+        await sendJSON(`${API_ATIVIDADES}/${id}`, 'DELETE');
+        await carregarAtividades();
+      } catch (error) {
+        console.error('Erro ao excluir atividade:', error);
+        alert(error.message);
+      }
+    });
+  });
 }
 
-function showMessage(message, type = 'success') {
-  const msg = document.getElementById('msg');
-  msg.textContent = message;
-  msg.className = `msg ${type}`;
-  msg.style.display = 'block';
+// ======================================================
+// SUBMIT
+// ======================================================
 
-  setTimeout(() => {
-    msg.style.display = 'none';
-  }, 4000);
+async function onSubmit(event) {
+  event.preventDefault();
+
+  try {
+    const payload = {
+      cliente: clienteEl.value,
+      contrato: contratoEl.value,
+      tag: tagEl.value.trim(),
+      serie: serieEl.value.trim(),
+      equipamento: equipamentoEl.value.trim(),
+      horimetro: horimetroEl.value ? Number(horimetroEl.value) : null,
+      tipo: tipoEl.value,
+      atividade_requisitada: atividadeRequisitadaEl.value.trim(),
+      om: omEl.value.trim(),
+      observacao: observacaoEl.value.trim(),
+      turno: turnoEl.value,
+      duracao: duracaoEl.value ? Number(duracaoEl.value) : null,
+      job: jobEl.value.trim(),
+      comp: compEl.value.trim(),
+      data_inicio: dataInicioEl.value,
+      data_termino: dataTerminoEl.value,
+      tecnicos: obterTecnicosSelecionados()
+    };
+
+    await sendJSON(API_ATIVIDADES, 'POST', payload);
+
+    alert('Atividade salva com sucesso.');
+    form.reset();
+
+    limparSelect(contratoEl, 'Selecione o contrato');
+    limparCamposEquipamento();
+    tecnicosTbody.innerHTML = '';
+
+    await carregarClientes();
+    await carregarTecnicos();
+    await carregarAtividades();
+  } catch (error) {
+    console.error('Erro ao salvar atividade:', error);
+    alert(error.message);
+  }
 }
 
-function escapeHtml(value) {
-  return String(value || '')
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
+// ======================================================
+// EVENTOS
+// ======================================================
+
+clienteEl.addEventListener('change', carregarContratosPorCliente);
+contratoEl.addEventListener('change', aplicarFiltroTecnicos);
+turnoEl.addEventListener('change', aplicarFiltroTecnicos);
+tagEl.addEventListener('input', buscarEquipamentoPorTag);
+searchTecnicoEl.addEventListener('input', renderTecnicos);
+
+selectAllTecnicosEl.addEventListener('change', () => {
+  const checked = selectAllTecnicosEl.checked;
+  document.querySelectorAll('.tecnico-checkbox').forEach((checkbox) => {
+    checkbox.checked = checked;
+  });
+});
+
+form.addEventListener('submit', onSubmit);
+
+// ======================================================
+// INIT
+// ======================================================
+
+(async function init() {
+  await carregarClientes();
+  await carregarTecnicos();
+  await carregarAtividades();
+})();
